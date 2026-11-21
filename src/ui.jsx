@@ -5,19 +5,34 @@ export const API_URL =
   "http://localhost:8000";
 
 /** Thin fetch wrapper. files = { fieldName: File | File[] } -> multipart upload */
+
 export async function api(path, { method = "GET", files, json } = {}) {
   const opts = { method };
-  if (files) {
-    const fd = new FormData();
-    Object.entries(files).forEach(([k, v]) =>
-      [].concat(v).forEach((f) => fd.append(k, f)),
-    );
-    opts.body = fd;
-  } else if (json) {
-    opts.headers = { "Content-Type": "application/json" };
-    opts.body = JSON.stringify(json);
+
+  if (files || json) {
+    if (files) {
+      const fd = new FormData();
+
+      Object.entries(files).forEach(([key, value]) => {
+        [].concat(value).forEach((file) => fd.append(key, file));
+      });
+
+      // Append JSON data if it exists
+      if (json) {
+        Object.entries(json).forEach(([key, value]) => {
+          fd.append(key, value);
+        });
+      }
+
+      opts.body = fd;
+    } else {
+      opts.headers = { "Content-Type": "application/json" };
+      opts.body = JSON.stringify(json);
+    }
   }
+
   const res = await fetch(API_URL + path, opts);
+
   if (!res.ok) {
     let msg = res.statusText;
     try {
@@ -26,6 +41,7 @@ export async function api(path, { method = "GET", files, json } = {}) {
     } catch {}
     throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
   }
+
   return res.json();
 }
 

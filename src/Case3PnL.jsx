@@ -26,9 +26,10 @@ export default function Case3PnL() {
     await api("/api/cs3/jobs", {
       method: "POST",
       files: { data_file: file[0] },
-      body: { fc_name: "FC1", notify: "true" },
+      json: { fc_name: fcName, notify: "true" },
     });
     setFile([]);
+    setFcName("");
     await load.run();
   });
   const check = useAction(async () => {
